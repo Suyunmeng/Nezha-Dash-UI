@@ -6,7 +6,7 @@
  */
 
 // ------------------ 下雨特效配置 ------------------
-window.EnableRainEffect = false; // 是否启用背景下雨特效 (true/false)
+window.EnableRainEffect = true; // 是否启用背景下雨特效 (true/false)
 
 function initRain() {
   if (!window.EnableRainEffect) return;

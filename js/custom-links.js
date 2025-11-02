@@ -7,14 +7,14 @@
 
 // ------------------ 自定义链接配置 ------------------
 window.CustomLinks = JSON.stringify([
-  { link: "https://blog.faiz.hidns.co", name: "Blog", icon: "icon-book" },
+  { link: "https://cloudlink.jp.larksuite.com/wiki/space/7568059604148424212?ccm_open_type=lark_wiki_spaceLink&open_tab_from=wiki_home", name: "Blog", icon: "icon-book" },
   {
-    link: "https://t.me/Kaixa913_bot",
+    link: "https://t.me/suyunjing_chat_bot",
     name: "Telegram",
     icon: "icon-paper-plane",
   },
   {
-    link: "https://uptime.faiz.us.kg",
+    link: "https://cloudlink.betteruptime.com",
     name: "Uptime",
     icon: "icon-hourglass-start",
   },

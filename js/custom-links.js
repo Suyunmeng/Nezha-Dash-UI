@@ -7,7 +7,7 @@
 
 // ------------------ 自定义链接配置 ------------------
 window.CustomLinks = JSON.stringify([
-  { link: "https://cloudlink.jp.larksuite.com/wiki/space/7568059604148424212?ccm_open_type=lark_wiki_spaceLink&open_tab_from=wiki_home", name: "Blog", icon: "icon-book" },
+  { link: "https://cloudlink.jp.larksuite.com/wiki/space/7568059604148424212", name: "Blog", icon: "icon-book" },
   {
     link: "https://t.me/suyunjing_chat_bot",
     name: "Telegram",

@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>哪吒面板 - 美化版</title>
+  <!-- 引入阿里巴巴图标矢量库 -->
+  <link rel="stylesheet" href="//at.alicdn.com/t/c/font_4956031_5kxc4fexu39.css" />
+</head>
+<body>
+
+<!-- ========================================================================
+     哪吒面板界面美化 - 完整集成版本
+     包含所有功能模块,无需外部JS文件引用
+     ======================================================================== -->
+
+<script>
+// ============================================================================
+// 基础配置区域
+// ============================================================================
+(function() {
+  // ------------------ 哪吒面板基础配置 ------------------
+  // 【PC端背景图片列表】可添加多个URL，系统会随机选择一个
+  window.CustomBackgroundImages = [
+    "https://gh.pry.assets.991081.xyz/https://raw.githubusercontent.com/Suyunmeng/Nezha-Dash-UI/refs/heads/main/img/wallpaper/pc/1.png",
+    "https://gh.pry.assets.991081.xyz/https://raw.githubusercontent.com/Suyunmeng/Nezha-Dash-UI/refs/heads/main/img/wallpaper/pc/2.png",
+    "https://gh.pry.assets.991081.xyz/https://raw.githubusercontent.com/Suyunmeng/Nezha-Dash-UI/refs/heads/main/img/wallpaper/pc/3.png",
+    "https://gh.pry.assets.991081.xyz/https://raw.githubusercontent.com/Suyunmeng/Nezha-Dash-UI/refs/heads/main/img/wallpaper/pc/4.png",
+    "https://gh.pry.assets.991081.xyz/https://raw.githubusercontent.com/Suyunmeng/Nezha-Dash-UI/refs/heads/main/img/wallpaper/pc/5.png",
+  ];
+  
+  // 【移动端背景图片列表】可添加多个URL，系统会随机选择一个
+  window.CustomMobileBackgroundImages = [
+    "https://api.likepoems.com/img/pe/",
+  ];
+  
+  // 从列表中随机选择一个背景图片
+  window.CustomBackgroundImage = window.CustomBackgroundImages[
+    Math.floor(Math.random() * window.CustomBackgroundImages.length)
+  ];
+  window.CustomMobileBackgroundImage = window.CustomMobileBackgroundImages[
+    Math.floor(Math.random() * window.CustomMobileBackgroundImages.length)
+  ];
+  
+  window.CustomLogo = "https://gh.pry.assets.991081.xyz/https://raw.githubusercontent.com/Suyunmeng/Nezha-Dash-UI/refs/heads/main/img/logo.png"; // 【LOGO】页面左上角的LOGO图片URL
+  window.CustomDesc = "Cloudlink Inc."; // 【描述】LOGO下方的描述文字
+  window.ShowNetTransfer = true; // 【流量显示】是否在卡片上显示实时上下行流量 (true/false)
+  window.ForceCardInline = false; // 【卡片排列】是否强制所有服务器卡片在同一行显示 (true/false)
+  window.DisableAnimatedMan = true; // 【人物动画】是否禁用看板娘动画 (true/false)
+  window.CustomIllustration = ""; // 【自定义插图】右下角的插图URL (需禁用人物动画)
+  window.FixedTopServerName = false; // 【名称位置】是否将服务器名称固定在卡片顶部 (true/false)
+  window.ForceTheme = ""; // 【强制主题】强制使用指定主题 ("light" 或 "dark", 留空则跟随系统)
+
+  // ------------------ 自定义链接配置 ------------------
+  window.CustomLinks = JSON.stringify([
+    { link: "https://cloudlink.jp.larksuite.com/wiki/space/7568059604148424212", name: "Blog", icon: "icon-book" },
+    { link: "https://t.me/suyunjing_chat_bot", name: "Telegram", icon: "icon-paper-plane" },
+    { link: "https://cloudlink.betteruptime.com", name: "Uptime", icon: "icon-hourglass-start" },
+  ]); // 导航栏的自定义链接 (JSON格式), 新增 icon 字段，请确保 icon值为 iconfont.css 中真实存在的 class
+
+  // ------------------ 顶部链接图标配置 ------------------
+  window.CustomLinkIconSize = "16px"; // 图标大小 (例如: "16px", "1.2em")
+  window.CustomLinkIconColor = ""; // 图标颜色 (例如: "#fff"), 留空则继承文本颜色
+  window.CustomLinkIconMarginRight = "1px"; // 图标与文字的间距
+
+  // ------------------ 访客信息配置 ------------------
+  window.VisitorInfoAutoHideDelay = 2600; // 首次加载时自动隐藏的延迟时间 (毫秒)
+
+  // ------------------ 烟花特效配置 ------------------
+  window.EnableFireworks = true; // 是否启用鼠标点击烟花特效 (true/false)
+})();
+</script>
+
+<script>
+// ============================================================================
+// 模块 1: 自定义链接图标
+// ============================================================================
+/**
+ * Nezha-UI 自定义链接图标模块
+ * @description 为导航栏的自定义链接动态添加可配置的 iconfont 图标。
+ */
+(function() {
+  function initCustomLinks() {
+    if (!window.CustomLinks) return;
+
+    try {
+      const links = JSON.parse(window.CustomLinks);
+      if (!Array.isArray(links)) {
+        console.error("CustomLinks 格式不正确，应为JSON数组。");
+        return;
+      }
+
+      const observer = new MutationObserver(() => {
+        links.forEach((linkInfo) => {
+          if (!linkInfo.link || !linkInfo.icon) return;
+
+          // 查找页面上所有匹配的链接
+          const linkElements = document.querySelectorAll(
+            `a[href="${linkInfo.link}"]`
+          );
+
+          linkElements.forEach((linkEl) => {
+            // 检查是否已添加图标，防止重复
+            if (linkEl.querySelector(".custom-link-icon")) return;
+
+            const iconEl = document.createElement("i");
+            // 添加 iconfont 基础 class 和自定义的 icon class
+            iconEl.className = `iconfont ${linkInfo.icon} custom-link-icon`;
+
+            // 应用自定义样式
+            iconEl.style.fontSize = window.CustomLinkIconSize || "inherit";
+            if (window.CustomLinkIconColor) {
+              iconEl.style.color = window.CustomLinkIconColor;
+            }
+            iconEl.style.marginRight =
+              window.CustomLinkIconMarginRight || "5px";
+
+            // 将图标插入到链接文本之前
+            linkEl.prepend(iconEl);
+          });
+        });
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    } catch (e) {
+      console.error("初始化自定义链接图标失败:", e);
+    }
+  }
+
+  // 自动初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCustomLinks);
+  } else {
+    initCustomLinks();
+  }
+})();
+</script>
+
+<script>
+// ============================================================================
+// 模块 2: 自定义插图
+// ============================================================================
+/**
+ * Nezha-UI 插图插入模块
+ * @description 异步加载并插入自定义插图，代码更紧凑。
+ */
+(function() {
+  function initIllustration() {
+    if (!window.CustomIllustration || window.CustomIllustration.trim() === "")
+      return;
+
+    // 最简单直接的实现
+    const img = new Image();
+
+    // 插图样式设置函数
+    const setupIllustration = () => {
+      img.style.position = "absolute";
+      img.style.right = "-10px";
+      img.style.top = "-120px";
+      img.style.zIndex = "10";
+      img.style.width = "120px";
+      img.style.transition =
+        "opacity 0.4s ease-in-out, transform 0.4s ease-in-out"; // 减少过渡时间为0.4秒，让动画更快
+      img.style.opacity = "0";
+      img.style.transform = "translateY(20px)"; // 初始位置稍微下移
+
+      // 为了在DevTools中方便找到元素
+      img.className = "custom-illustration";
+      img.id = "nezha-custom-illustration";
+    };
+
+    // 为容器添加插图
+    const attachToContainer = (container) => {
+      if (!container) return false;
+
+      // 确保容器有相对定位
+      container.style.position = "relative";
+
+      // 移除可能存在的旧插图
+      const existing = document.getElementById("nezha-custom-illustration");
+      if (existing) existing.remove();
+
+      // 添加新插图
+      container.appendChild(img);
+
+      // 使用requestAnimationFrame确保渲染
+      requestAnimationFrame(() => {
+        // 延迟一帧执行，确保浏览器有时间应用初始样式
+        requestAnimationFrame(() => {
+          img.style.opacity = "1";
+          img.style.transform = "translateY(0)"; // 平滑移动到目标位置
+        });
+      });
+
+      return true;
+    };
+
+    // 尝试使用多种方法查找容器
+    const findAndAttach = () => {
+      // 1. 使用XPath查找 - 最可靠的定位方式
+      try {
+        const xpaths = [
+          "/html/body/div/div/main/div[2]/section[1]/div[4]/div", // 原始XPath
+          "//section[contains(@class,'section')]/div[last()]/div", // 带section的备选
+          "//div[contains(@class,'server-cards-container')]/div[last()]", // 服务器卡片容器
+        ];
+
+        for (const xpath of xpaths) {
+          const result = document.evaluate(
+            xpath,
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null
+          ).singleNodeValue;
+
+          if (result && attachToContainer(result)) {
+            return true;
+          }
+        }
+      } catch (e) {
+        // XPath查找失败，继续尝试其他方法
+      }
+
+      // 2. 使用选择器查找
+      const selectors = [
+        ".server-cards-container > div:last-child",
+        ".section > div:last-child > div",
+        ".card:last-child",
+      ];
+
+      for (const selector of selectors) {
+        const container = document.querySelector(selector);
+        if (container && attachToContainer(container)) {
+          return true;
+        }
+      }
+
+      // 3. 尝试直接添加到已知父容器
+      const parents = [
+        document.querySelector(".server-cards-container"),
+        document.querySelector(".section"),
+      ];
+
+      for (const parent of parents) {
+        if (parent) {
+          // 在父容器的最后添加一个新的div作为插图容器
+          const newContainer = document.createElement("div");
+          newContainer.style.position = "relative";
+          parent.appendChild(newContainer);
+
+          if (attachToContainer(newContainer)) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    };
+
+    // 预设置插图样式
+    setupIllustration();
+
+    // 图片加载完成后执行
+    img.onload = () => {
+      // 先尝试一次直接查找并添加
+      if (findAndAttach()) return;
+
+      // 如果失败，设置多次重试
+      let retries = 0;
+      const maxRetries = 5;
+      const retryInterval = 800; // 800ms间隔
+
+      const tryAttach = () => {
+        if (findAndAttach()) return;
+
+        retries++;
+        if (retries < maxRetries) {
+          setTimeout(tryAttach, retryInterval);
+        }
+      };
+
+      // 开始重试
+      setTimeout(tryAttach, retryInterval);
+    };
+
+    // 设置图片源
+    img.src = window.CustomIllustration;
+
+    // 确保页面加载完成后也会尝试
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        findAndAttach();
+      }, 1000);
+    });
+
+    // 新增：监听DOM变化，用于在从服务器详情页返回时重新添加插图
+    const domObserver = new MutationObserver((mutations) => {
+      // 检查是否有服务器卡片容器相关的变化
+      const relevantMutations = mutations.some((mutation) => {
+        // 检查新增的节点是否包含服务器卡片容器
+        if (mutation.addedNodes.length) {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              if (
+                node.classList?.contains("server-cards-container") ||
+                node.querySelector?.(".server-cards-container") ||
+                node.classList?.contains("section") ||
+                node.querySelector?.(".section")
+              ) {
+                return true;
+              }
+            }
+          }
+        }
+
+        // 检查修改的属性是否可能影响布局
+        if (
+          mutation.type === "attributes" &&
+          (mutation.attributeName === "class" ||
+            mutation.attributeName === "style")
+        ) {
+          const target = mutation.target;
+          if (
+            target.classList?.contains("server-cards-container") ||
+            target.closest?.(".server-cards-container") ||
+            target.classList?.contains("section") ||
+            target.closest?.(".section")
+          ) {
+            return true;
+          }
+        }
+
+        return false;
+      });
+
+      if (relevantMutations) {
+        // 延迟执行，确保DOM已经完全更新
+        setTimeout(() => {
+          // 检查插图是否已存在
+          const existing = document.getElementById("nezha-custom-illustration");
+          if (!existing || existing.offsetParent === null) {
+            // 插图不存在或不可见，尝试重新添加
+            // 先移除可能存在但不可见的旧插图
+            if (existing) existing.remove();
+
+            // 确保新插图有完整的动画效果
+            const newImg = new Image();
+            newImg.src = img.src;
+            newImg.onload = () => {
+              // 复制原始插图的所有样式设置
+              setupIllustration();
+              img.style.opacity = "0";
+              img.style.transform = "translateY(20px)";
+              findAndAttach();
+            };
+          }
+        }, 300);
+      }
+    });
+
+    // 配置观察器选项
+    const observerOptions = {
+      childList: true, // 观察子节点变化
+      subtree: true, // 观察所有后代节点
+      attributes: true, // 观察属性变化
+    };
+
+    // 开始观察整个文档
+    domObserver.observe(document.body, observerOptions);
+
+    // 监听路由变化（针对单页应用）
+    window.addEventListener("popstate", () => {
+      // 先重置插图状态以确保动画效果
+      img.style.opacity = "0";
+      img.style.transform = "translateY(20px)";
+      setTimeout(() => findAndAttach(), 150); // 减少延迟时间为150ms，让动画更快开始
+    });
+
+    // 监听哈希变化（针对使用hash路由的应用）
+    window.addEventListener("hashchange", () => {
+      // 先重置插图状态以确保动画效果
+      img.style.opacity = "0";
+      img.style.transform = "translateY(20px)";
+      setTimeout(() => findAndAttach(), 150); // 减少延迟时间为150ms，让动画更快开始
+    });
+  }
+
+  // 自动初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initIllustration);
+  } else {
+    initIllustration();
+  }
+})();
+</script>
+
+<script>
+// ============================================================================
+// 模块 3: 访客信息面板
+// ============================================================================
+/**
+ * Nezha-UI 访客信息显示模块
+ * @description 获取并显示访客信息，代码更紧凑。
+ */
+(function() {
+  // ------------------ 工具函数 ------------------
+  /**
+   * 将国家代码转换为国旗Emoji。
+   * @param {string} countryCode - 两位的国家代码 (例如 "US")。
+   * @returns {string} 对应的国旗Emoji。
+   */
+  function countryCodeToFlagEmoji(countryCode) {
+    if (!countryCode || countryCode.length !== 2) return "";
+    return String.fromCodePoint(
+      ...[...countryCode.toUpperCase()].map((c) => c.charCodeAt(0) + 0x1f1a5)
+    );
+  }
+
+  /**
+   * 从User Agent中获取操作系统信息。
+   * @returns {string} 操作系统名称和位数。
+   */
+  function getOS() {
+    const ua = navigator.userAgent;
+    const osMap = [
+      { r: /Windows NT 10\.0/, n: "Windows 10/11" },
+      { r: /Windows NT 6\.3/, n: "Windows 8.1" },
+      { r: /Windows NT 6\.2/, n: "Windows 8" },
+      { r: /Windows NT 6\.1/, n: "Windows 7" },
+      { r: /Mac OS X/, n: "macOS" },
+      { r: /Android/, n: "Android" },
+      { r: /iPhone|iPad|iPod/, n: "iOS" },
+      { r: /Linux/, n: "Linux" },
+    ];
+    let os = osMap.find(({ r }) => r.test(ua))?.n || "Unknown OS";
+    let bit = "";
+    if (os.startsWith("Windows"))
+      bit = /WOW64|Win64/.test(ua) ? "64-bit" : "32-bit";
+    if (os === "macOS") bit = /MacIntel/.test(ua) ? "64-bit" : "32-bit";
+    return `${os} ${bit}`.trim();
+  }
+
+  /**
+   * 从User Agent中获取浏览器信息。
+   * @returns {string} 浏览器名称和版本。
+   */
+  function getBrowser() {
+    const ua = navigator.userAgent;
+    const browserMap = [
+      { r: /Edg\/([\d.]+)/, n: "Edge" },
+      { r: /OPR\/([\d.]+)/, n: "Opera" },
+      { r: /Chrome\/([\d.]+)/, n: "Chrome", e: /Edg|OPR/ },
+      { r: /Firefox\/([\d.]+)/, n: "Firefox" },
+      { r: /Version\/([\d.]+).*Safari/, n: "Safari" },
+    ];
+    for (const { r, n, e } of browserMap) {
+      if (e?.test(ua)) continue;
+      const match = ua.match(r);
+      if (match) return `${n} ${match[1]}`;
+    }
+    return "Unknown Browser";
+  }
+
+  /**
+   * 获取当前本地化的日期和星期。
+   * @returns {string} 格式化的日期字符串。
+   */
+  function getCurrentDate() {
+    const date = new Date();
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long",
+    };
+    return date.toLocaleDateString("en-US", options);
+  }
+
+  function initVisitorInfo() {
+    // (重构) 并行获取两个数据源，然后合并
+    const ipinfoPromise = fetch("https://ipinfo.io/json/")
+      .then((res) => res.json())
+      .catch((err) => {
+        console.warn("获取 ipinfo.io 信息失败:", err);
+        return {}; // 失败时返回空对象，不中断流程
+      });
+
+    const ipapiPromise = fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .catch((err) => {
+        console.warn("获取 ipapi.co 信息失败:", err);
+        return {}; // 失败时返回空对象
+      });
+
+    Promise.all([ipinfoPromise, ipapiPromise])
+      .then(([ipinfoData, ipapiData]) => {
+        // 合并数据：ipapi作为补充，ipinfo作为主要来源（会覆盖同名字段）
+        const mergedData = { ...ipapiData, ...ipinfoData };
+        displayVisitorInfo(mergedData);
+      })
+      .catch((err) => {
+        console.error("无法获取任何访客信息:", err);
+        displayVisitorInfo({}); // 极端情况下使用空数据展示
+      });
+
+    // (重构) 改为函数声明以支持提升，供fetch调用
+    function displayVisitorInfo(data) {
+      // =================================================================
+      // 1. 创建并填充信息容器 (Create and Populate Info Container)
+      // =================================================================
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+      let btn = null; // 声明按钮变量以在函数作用域内访问
+
+      // 基本样式 (Base Styles)
+      Object.assign(container.style, {
+        position: "fixed",
+        zIndex: "1000",
+        padding: "10px",
+        borderRadius: "5px",
+        fontSize: "14px",
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.15)",
+        display: "none", // 默认隐藏 (Hidden by default)
+      });
+
+      // 填充内容 (Populate Content)
+      const flag = countryCodeToFlagEmoji(data.country || "");
+      let countryFullName = "";
+      if (data.country) {
+        try {
+          // 使用 Intl.DisplayNames 获取国家全称 (英文)
+          countryFullName = new Intl.DisplayNames(["en"], {
+            type: "region",
+          }).of(data.country);
+        } catch (e) {
+          console.warn(`无法获取国家名称: ${data.country}`, e);
+          countryFullName = data.country; // 降级为国家代码
+        }
+      }
+      const asnInfo = data.asn || data.org || "N/A";
+      const infoContent = [
+        {
+          name: "Country",
+          value: `${flag} ${countryFullName} ${data.region || ""} ${
+            data.city || ""
+          }`.trim(),
+          icon: "icon-earth-full",
+        },
+        {
+          name: "Date",
+          value: getCurrentDate(),
+          icon: "icon-calendar-days",
+        },
+        {
+          name: "IP Info",
+          value: data.ip || "Unknown",
+          icon: "icon-location-dot",
+        },
+        {
+          name: "ASN",
+          value: asnInfo,
+          icon: "icon-shenfengzheng",
+        }, // 新增ASN信息
+        { name: "System", value: getOS(), icon: "icon-hollow-computer" },
+        { name: "Browser", value: getBrowser(), icon: "icon-guge" },
+      ];
+
+      // 使用 innerHTML 和模板字符串大幅简化 DOM 创建
+      container.innerHTML = infoContent
+        .map(
+          (item) => `
+          <div style="display: flex; align-items: center; margin-bottom: 2px;">
+            <i class="iconfont ${item.icon}" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;"></i>
+            <span style="font-weight: bold; margin-left: 4px;">${item.name}:&nbsp;</span>
+            <span>${item.value}</span>
+          </div>`
+        )
+        .join("");
+
+      // =================================================================
+      // 2. 主题适配 (Theme Adaptation)
+      // =================================================================
+      const updateTheme = () => {
+        // 优先使用 <html> 的 data-theme 属性，其次是 class，最后是系统设置
+        const theme = document.documentElement.getAttribute("data-theme");
+        const isDark =
+          theme === "dark" ||
+          document.documentElement.classList.contains("dark") ||
+          (theme !== "light" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+        Object.assign(container.style, {
+          backgroundColor: isDark
+            ? "rgba(30, 30, 30, 0.85)"
+            : "rgba(255, 255, 255, 0.85)",
+          color: isDark ? "#fff" : "#333",
+        });
+        container.querySelectorAll("i.iconfont").forEach((icon) => {
+          icon.style.color = isDark ? "#ffffff" : "#242c36";
+        });
+
+        // (新增) 如果按钮存在，则更新其背景颜色
+        if (btn) {
+          btn.style.backgroundColor = isDark ? "#2d363d" : "#4f6980";
+        }
+      };
+
+      // 首次加载时更新主题
+      updateTheme();
+      // 监听系统主题变化
+      window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addEventListener("change", updateTheme);
+      // 监听自定义的主题切换事件（来自 initThemeAutoSwitch）
+      document.documentElement.addEventListener("themechange", updateTheme);
+
+      // 新增：使用 MutationObserver 监听主题变化，以兼容Nezha面板的手动主题切换
+      const themeObserver = new MutationObserver(updateTheme);
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme", "class"],
+      });
+
+      // =================================================================
+      // 3. 根据设备类型设置显示逻辑 (Device-specific Display Logic)
+      // =================================================================
+      if (window.innerWidth > 768) {
+        /**
+         * -----------------------------------------------------------------
+         * 电脑端显示逻辑 (Desktop View Logic)
+         * - 信息框固定在右下角。
+         * - 有一个可点击的按钮来切换信息框的显示/隐藏。
+         * - 首次加载时自动显示3秒后隐藏，按钮变为半透明。
+         * -----------------------------------------------------------------
+         */
+
+        // 设置容器位置
+        Object.assign(container.style, {
+          right: "20px",
+          bottom: "20px",
+          width: "auto",
+        });
+
+        // 创建切换按钮
+        btn = document.createElement("button");
+        const icon = document.createElement("i");
+        icon.className = "iconfont icon-footprint-full";
+        Object.assign(icon.style, { color: "#ffffff", fontSize: "22px" });
+        Object.assign(btn.style, {
+          position: "fixed",
+          right: "20px",
+          bottom: "20px",
+          zIndex: "1100",
+          transition: "opacity 0.3s, background-color 0.3s ease", // (修改) 新增背景颜色过渡
+          cursor: "pointer",
+          // backgroundColor 由 updateTheme 控制
+          border: "none",
+          boxShadow: "0 2px 8px rgba(45,54,61,.5)",
+          width: "40px", // 【按钮宽度】在这里修改按钮的宽度
+          height: "40px", // 【按钮高度】在这里修改按钮的高度
+          padding: "0",
+          borderRadius: "8px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        });
+        btn.append(icon);
+        document.body.append(btn);
+
+        // (新增) 首次创建按钮后，立即应用一次主题颜色
+        updateTheme();
+
+        // 定义显示/隐藏逻辑
+        const handleClickOutside = (e) =>
+          !container.contains(e.target) && hideContainer();
+
+        const showContainer = ({ autoHide = false } = {}) => {
+          container.style.display = "block";
+          container.style.opacity = "1"; // 确保完全显示
+          container.style.transition = "opacity 0.3s ease"; // 添加过渡效果
+          btn.style.display = "none";
+
+          if (autoHide) {
+            clearTimeout(window._autoHideTimer); // 清除旧的计时器
+            window._autoHideTimer = setTimeout(
+              hideContainer,
+              window.VisitorInfoAutoHideDelay || 2600
+            );
+          } else {
+            setTimeout(
+              () => document.addEventListener("click", handleClickOutside),
+              0
+            );
+          }
+        };
+
+        const hideContainer = () => {
+          // 先设置一个短暂的过渡效果
+          container.style.transition = "opacity 0.3s ease";
+          container.style.opacity = "0";
+
+          // 延迟隐藏容器，等待淡出效果完成
+          setTimeout(() => {
+            container.style.display = "none";
+            btn.style.display = "flex";
+            btn.style.opacity = "1";
+            document.removeEventListener("click", handleClickOutside);
+
+            // 完全匹配音乐播放器的延迟时间
+            window._opacityTimer = setTimeout(() => {
+              if (container.style.display === "none") btn.style.opacity = "0.3";
+            }, 2600);
+          }, 300);
+        };
+
+        // 绑定事件
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          showContainer({ autoHide: false });
+        };
+        btn.onmouseenter = () => {
+          btn.style.opacity = "1";
+        };
+        btn.onmouseleave = () => {
+          if (container.style.display === "none") btn.style.opacity = "0.3";
+        };
+
+        // (新增) 页面可见性变化处理，修复切回标签页时的显示问题
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden || window.innerWidth <= 768) {
+            return; // 只在桌面端且页面可见时操作
+          }
+
+          // 当页面恢复可见时，像首次加载一样，自动展开面板并延时收起
+          showContainer({ autoHide: true });
+        });
+
+        // 初始显示
+        showContainer({ autoHide: true });
+
+        // 监听窗口大小变化
+        window.addEventListener("resize", () => {
+          if (window.innerWidth > 768) {
+            btn.style.display =
+              container.style.display === "none" ? "flex" : "none";
+          } else {
+            // 如果缩小到手机尺寸，隐藏桌面端元素
+            btn.style.display = "none";
+            document.removeEventListener("click", handleClickOutside);
+            // 注意：此处的逻辑并未完全切换到手机模式，仅做隐藏处理
+          }
+        });
+      } else {
+        /**
+         * -----------------------------------------------------------------
+         * 手机端显示逻辑 (Mobile View Logic)
+         * - 首次访问时，信息框在底部弹出显示3秒，然后自动消失。
+         * - 消失后，恢复为原版逻辑：滚动到页面最底部时才显示。
+         * -----------------------------------------------------------------
+         */
+
+        // 1. 首次加载时动画显示
+        Object.assign(container.style, {
+          position: "fixed",
+          left: "0",
+          bottom: "0",
+          width: "100%",
+          display: "block",
+          transition: "opacity 0.5s ease-in-out, transform 0.5s ease-in-out",
+          transform: "translateY(0)",
+          opacity: "1",
+        });
+
+        // 2. 3秒后动画消失
+        setTimeout(() => {
+          container.style.opacity = "0";
+          container.style.transform = "translateY(100%)";
+
+          // 3. 动画结束后，切换为滚动到底部显示
+          setTimeout(() => {
+            Object.assign(container.style, {
+              position: "absolute",
+              display: "none",
+              opacity: "1",
+              transform: "translateY(0)",
+            });
+            container.style.bottom = ""; // 移除fixed定位的bottom属性
+
+            window.addEventListener("scroll", () => {
+              container.style.display =
+                window.scrollY + window.innerHeight >=
+                document.body.scrollHeight
+                  ? "block"
+                  : "none";
+            });
+          }, 500); // 等待淡出动画完成
+        }, window.VisitorInfoAutoHideDelay || 2000); // 使用配置的时间
+      }
+    }
+  }
+
+  // 自动初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initVisitorInfo);
+  } else {
+    initVisitorInfo();
+  }
+})();
+</script>
+
+<script>
+// ============================================================================
+// 模块 4: 烟花特效
+// ============================================================================
+/**
+ * Nezha-UI 鼠标点击烟花特效模块
+ * @description 创建轻量级、高性能的点击烟花效果。
+ */
+(function() {
+  function initFireworks() {
+    if (!window.EnableFireworks) return;
+
+    const canvas = document.createElement("canvas");
+    Object.assign(canvas.style, {
+      position: "fixed",
+      pointerEvents: "none",
+      top: "0", // 顶部对齐
+      left: "0", // 左侧对齐
+      width: "100%", // 宽度占满
+      height: "100%", // 高度占满
+      zIndex: "9999", // 确保特效在最顶层
+    });
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+    let w, h;
+    const MAX_PARTICLES = 500, // 粒子池大小 & 屏幕最大粒子数
+      PARTICLE_COUNT_PER_CLICK = 30; // 每次点击生成的粒子数
+    const colors = ["#ff1461", "#18ff92", "#5a87ff", "#fbf38c"]; // 粒子颜色池
+
+    let particlePool = Array.from({ length: MAX_PARTICLES }, () => ({
+      active: false,
+    }));
+    let activeParticleCount = 0;
+    let animationFrameId = null;
+
+    const resize = () => {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    function launchParticle(x, y, color) {
+      const p = particlePool.find((p) => !p.active);
+      if (!p) return;
+
+      const angle = Math.random() * 2 * Math.PI;
+      const speed = Math.random() * 5 + 2;
+      Object.assign(p, {
+        active: true,
+        x,
+        y,
+        color,
+        angle,
+        speed,
+        radius: Math.random() * 2 + 1, // 粒子半径
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        alpha: 1, // 初始不透明度
+        decay: Math.random() * 0.015 + 0.003, // 衰减速率
+      });
+      activeParticleCount++;
+    }
+
+    function updateAndDraw() {
+      ctx.clearRect(0, 0, w, h);
+      particlePool.forEach((p) => {
+        if (!p.active) return;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= p.decay;
+
+        if (p.alpha <= 0) {
+          p.active = false;
+          activeParticleCount--;
+        } else {
+          ctx.save();
+          ctx.globalAlpha = p.alpha; // 设置粒子不透明度
+          ctx.beginPath();
+          ctx.fillStyle = p.color; // 设置粒子颜色
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      });
+    }
+
+    function animate() {
+      updateAndDraw();
+      if (activeParticleCount > 0) {
+        animationFrameId = requestAnimationFrame(animate);
+      } else {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+        ctx.clearRect(0, 0, w, h);
+      }
+    }
+
+    window.addEventListener("click", (e) => {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      for (let i = 0; i < PARTICLE_COUNT_PER_CLICK; i++) {
+        if (activeParticleCount >= MAX_PARTICLES) break;
+        launchParticle(e.clientX, e.clientY, color);
+      }
+      if (!animationFrameId) animate();
+    });
+  }
+
+  // 自动初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFireworks);
+  } else {
+    initFireworks();
+  }
+})();
+</script>
+
+<!-- ============================================================================
+     说明：
+     - 下雨特效和音乐播放器已禁用（根据用户要求）
+     - 所有脚本已集成到单一HTML文件中，无需外部JS引用
+     - 如需启用/禁用某个模块，可直接注释掉对应的 <script> 标签
+     ============================================================================ -->
+
+</body>
+</html>

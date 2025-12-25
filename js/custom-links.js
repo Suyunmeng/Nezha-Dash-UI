@@ -9,7 +9,7 @@
 window.CustomLinks = JSON.stringify([
   { link: "https://cloudlink.jp.larksuite.com/wiki/space/7568059604148424212", name: "Blog", icon: "icon-book" },
   {
-    link: "https://t.me/suyunjing_chat_bot",
+    link: "https://t.me/Kaixa913_bot",
     name: "Telegram",
     icon: "icon-paper-plane",
   },
@@ -47,6 +47,8 @@ function initCustomLinks() {
         linkElements.forEach((linkEl) => {
           // 检查是否已添加图标，防止重复
           if (linkEl.querySelector(".custom-link-icon")) return;
+          // 排除音乐播放器内的链接
+          if (linkEl.closest(".music-player-container")) return;
 
           const iconEl = document.createElement("i");
           // 添加 iconfont 基础 class 和自定义的 icon class

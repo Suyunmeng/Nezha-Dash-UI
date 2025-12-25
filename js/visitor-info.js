@@ -82,30 +82,36 @@ function getCurrentDate() {
 }
 
 function initVisitorInfo() {
-  // (重构) 并行获取两个数据源，然后合并
-  const ipinfoPromise = fetch("https://ipinfo.io/json/")
+  // 先用ipinfo.io获取IP，再用widget接口获取详细信息
+  fetch("https://ipinfo.io/json")
     .then((res) => res.json())
-    .catch((err) => {
-      console.warn("获取 ipinfo.io 信息失败:", err);
-      return {}; // 失败时返回空对象，不中断流程
-    });
-
-  const ipapiPromise = fetch("https://ipapi.co/json/")
-    .then((res) => res.json())
-    .catch((err) => {
-      console.warn("获取 ipapi.co 信息失败:", err);
-      return {}; // 失败时返回空对象
-    });
-
-  Promise.all([ipinfoPromise, ipapiPromise])
-    .then(([ipinfoData, ipapiData]) => {
-      // 合并数据：ipapi作为补充，ipinfo作为主要来源（会覆盖同名字段）
-      const mergedData = { ...ipapiData, ...ipinfoData };
-      displayVisitorInfo(mergedData);
+    .then((basicData) => {
+      const userIP = basicData.ip;
+      if (!userIP) {
+        console.warn("无法从 ipinfo.io 获取IP");
+        return displayVisitorInfo(basicData);
+      }
+      
+      // 用获取到的IP调用ipinfo widget接口获取详细信息
+      return fetch(`https://ipinfo.io/widget/demo/${userIP}`)
+        .then((res) => res.json())
+        .then((ipinfoResult) => {
+          const ipinfoData = ipinfoResult.data || {};
+          // 只使用widget接口的数据，ASN只取编号
+          const finalData = {
+            ...ipinfoData,
+            asn: ipinfoData.asn?.asn || ipinfoData.org || "N/A"
+          };
+          displayVisitorInfo(finalData);
+        })
+        .catch((err) => {
+          console.warn("获取 ipinfo.io widget 信息失败:", err);
+          displayVisitorInfo(basicData);
+        });
     })
     .catch((err) => {
-      console.error("无法获取任何访客信息:", err);
-      displayVisitorInfo({}); // 极端情况下使用空数据展示
+      console.error("无法获取访客信息:", err);
+      displayVisitorInfo({});
     });
 
   // (重构) 改为函数声明以支持提升，供fetch调用
@@ -164,10 +170,20 @@ function initVisitorInfo() {
         icon: "icon-location-dot",
       },
       {
+        name: "Type",
+        value: (() => {
+          if (data.is_hosting) return "Hosting";
+          const type = data.company?.type?.toLowerCase();
+          const typeMap = { isp: "ISP", business: "Business", education: "Education", hosting: "Hosting" };
+          return typeMap[type] || "Unknown";
+        })(),
+        icon: "icon-tags",
+      },
+      {
         name: "ASN",
         value: asnInfo,
         icon: "icon-shenfengzheng",
-      }, // 新增ASN信息
+      },
       { name: "System", value: getOS(), icon: "icon-hollow-computer" },
       { name: "Browser", value: getBrowser(), icon: "icon-guge" },
     ];

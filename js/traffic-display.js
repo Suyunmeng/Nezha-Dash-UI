@@ -158,37 +158,12 @@
 
     console.log('[renderTrafficStats] 找到', serverMap.size, '个服务器数据');
 
-    // 调试：列出页面上所有的服务器卡片名称
-    const allServerCards = Array.from(document.querySelectorAll('section.grid.items-center.gap-2'));
-    console.log('[renderTrafficStats] 页面上找到', allServerCards.length, '个服务器卡片');
-    
-    if (allServerCards.length > 0) {
-      // 查看第一个卡片的完整结构
-      const firstCard = allServerCards[0];
-      console.log('[renderTrafficStats] 第一个卡片完整结构:', firstCard);
-      console.log('[renderTrafficStats] 第一个卡片 innerHTML:', firstCard.innerHTML.substring(0, 500));
-      
-      // 尝试不同的选择器
-      const nameElement1 = firstCard.querySelector('p.break-all.font-bold.tracking-tight.text-xs');
-      const nameElement2 = firstCard.querySelector('p.font-bold');
-      const nameElement3 = firstCard.querySelector('p');
-      const allP = firstCard.querySelectorAll('p');
-      
-      console.log('[renderTrafficStats] 第一个卡片 - 选择器1结果:', nameElement1);
-      console.log('[renderTrafficStats] 第一个卡片 - 选择器2结果:', nameElement2);
-      console.log('[renderTrafficStats] 第一个卡片 - 选择器3结果:', nameElement3);
-      console.log('[renderTrafficStats] 第一个卡片 - 所有p标签数量:', allP.length);
-      allP.forEach((p, i) => {
-        console.log(`[renderTrafficStats] 第一个卡片 - p标签${i}:`, p.textContent, p.className);
-      });
-    }
-
     // 为每个服务器渲染流量信息
     serverMap.forEach((serverData, serverName) => {
       console.log('[renderTrafficStats] 处理服务器:', serverName);
       const targetElement = Array.from(document.querySelectorAll('section.grid.items-center.gap-2'))
         .find(section => {
-          const firstText = section.querySelector('p.break-all.font-bold.tracking-tight.text-xs')?.textContent.trim();
+          const firstText = section.querySelector('p.break-normal.font-bold.tracking-tight.text-xs')?.textContent.trim();
           return firstText === serverName;
         });
 

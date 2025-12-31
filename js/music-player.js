@@ -34,7 +34,17 @@ window.EnableMusicPlayer = true; // 是否启用音乐播放器（true/false）
 window.MusicPlayerBallSize = 50; // 悬浮球尺寸（单位：像素）
 window.MusicPlayerAutoCollapse = 2600; // 自动收起面板的延迟时间（单位：毫秒）
 window.MusicPlayerTitle = "NeZha Music Player"; // 音乐播放器标题/默认艺术家名称（当文件名无"-"时使用）
-window.MusicPlayerAPIUrl = "https://music.588945.xyz/api/music/list"; // 音乐列表API地址
+
+// 音乐源配置（支持两种模式）
+window.MusicPlayerMode = "netease"; // 音乐源模式："custom" 使用自定义API，"netease" 使用网易云音乐
+window.MusicPlayerAPIUrl = "https://music.588945.xyz/api/music/list"; // 自定义音乐列表API地址（mode为custom时使用）
+
+// 网易云音乐配置（mode为netease时使用）
+window.MusicPlayerNeteaseServer = "netease"; // 音乐服务器类型：netease(网易云), tencent(QQ音乐), kugou(酷狗), xiami(虾米), baidu(百度)
+window.MusicPlayerNeteaseType = "playlist"; // 类型：song(单曲), playlist(歌单), album(专辑), search(搜索), artist(艺术家)
+window.MusicPlayerNeteaseId = "2077740130"; // 歌单/专辑/艺术家ID或歌曲ID
+window.MusicPlayerNeteaseAPI = "https://api.injahow.cn/meting/"; // Meting API 地址（可选，默认使用官方API）
+
 window.MusicPlayerDefaultVolume = 0.2; // 默认音量（范围：0-1）
 
 // GitHub 链接配置
@@ -882,35 +892,96 @@ function initMusicPlayer() {
   // 5.1 从API获取播放列表
   async function loadPlaylist() {
     try {
-      const response = await fetch(window.MusicPlayerAPIUrl);
-      const data = await response.json();
+      const mode = window.MusicPlayerMode || "custom";
+      let data;
       
-      if (data && data.data && data.data.length > 0) {
-        const coverList = window.MusicPlayerCoverList && window.MusicPlayerCoverList.length > 0
-          ? window.MusicPlayerCoverList
-          : null;
+      if (mode === "netease") {
+        // 网易云音乐模式
+        const server = window.MusicPlayerNeteaseServer || "netease";
+        const type = window.MusicPlayerNeteaseType || "playlist";
+        const id = window.MusicPlayerNeteaseId || "2485662712";
+        const apiBase = window.MusicPlayerNeteaseAPI || "https://api.injahow.cn/meting/";
         
-        playlist = data.data.map(item => {
-          const randomCover = coverList 
-            ? coverList[Math.floor(Math.random() * coverList.length)]
+        // 构建 Meting API 请求 URL
+        const apiUrl = `${apiBase}?server=${server}&type=${type}&id=${id}`;
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+          throw new Error(`网易云音乐 API 请求失败: ${response.status}`);
+        }
+        
+        data = await response.json();
+        
+        // 转换网易云音乐数据格式
+        if (Array.isArray(data)) {
+          playlist = data.map((track, index) => {
+            // 网易云音乐返回的数据格式
+            const title = track.name || track.title || `未知歌曲 ${index + 1}`;
+            const artist = track.artist || track.author || window.MusicPlayerTitle || "未知艺术家";
+            const url = track.url || track.mp3 || "";
+            
+            // 优先使用网易云 API 返回的封面
+            let cover = track.pic || track.cover || "";
+            
+            // 如果 API 没有返回封面，才使用本地随机封面
+            if (!cover && window.MusicPlayerCoverList && window.MusicPlayerCoverList.length > 0) {
+              cover = window.MusicPlayerCoverList[Math.floor(Math.random() * window.MusicPlayerCoverList.length)];
+            }
+            
+            return {
+              title: title,
+              artist: artist,
+              url: url,
+              cover: cover
+            };
+          });
+        } else {
+          console.error("网易云音乐 API 返回的数据格式不正确");
+          playlist = [];
+        }
+      } else {
+        // 自定义API模式
+        const apiUrl = window.MusicPlayerAPIUrl || "https://music.588945.xyz/api/music/list";
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+          throw new Error(`API 请求失败: ${response.status}`);
+        }
+        
+        data = await response.json();
+        
+        // 处理自定义API返回的数据
+        if (data && data.data && data.data.length > 0) {
+          const coverList = window.MusicPlayerCoverList && window.MusicPlayerCoverList.length > 0
+            ? window.MusicPlayerCoverList
             : null;
           
-          // 解析文件名：格式为 "歌曲名-作者.mp3"
-          const nameWithoutExt = item.filename.replace(/\.[^/.]+$/, "");
-          const parts = nameWithoutExt.split('-');
-          const songTitle = parts.length > 1 ? parts[0].trim() : nameWithoutExt;
-          const songArtist = parts.length > 1 ? parts.slice(1).join('-').trim() : (window.MusicPlayerTitle || "Music Player");
-          
-          return {
-            url: item.url,
-            title: songTitle,
-            artist: songArtist,
-            cover: randomCover
-          };
-        });
-        
+          playlist = data.data.map(item => {
+            const randomCover = coverList 
+              ? coverList[Math.floor(Math.random() * coverList.length)]
+              : null;
+            
+            // 解析文件名：格式为 "歌曲名-作者.mp3"
+            const nameWithoutExt = item.filename.replace(/\.[^/.]+$/, "");
+            const parts = nameWithoutExt.split('-');
+            const songTitle = parts.length > 1 ? parts[0].trim() : nameWithoutExt;
+            const songArtist = parts.length > 1 ? parts.slice(1).join('-').trim() : (window.MusicPlayerTitle || "Music Player");
+            
+            return {
+              url: item.url,
+              title: songTitle,
+              artist: songArtist,
+              cover: randomCover
+            };
+          });
+        } else {
+          console.warn("播放列表为空");
+          playlist = [];
+        }
+      }
+      
+      if (playlist.length > 0) {
         renderPlaylist();
-        
         const randomIndex = Math.floor(Math.random() * playlist.length);
         loadTrack(randomIndex);
       } else {
@@ -918,6 +989,7 @@ function initMusicPlayer() {
       }
     } catch (error) {
       console.error("获取播放列表失败:", error);
+      playlist = [];
     }
   }
 

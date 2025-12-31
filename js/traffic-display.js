@@ -12,9 +12,9 @@
   
   const config = {
     showTrafficStats: true,      // 是否显示流量统计
-    insertPosition: 'replace',   // 插入位置：'after'(之后), 'before'(之前), 'replace'(替换)
+    insertPosition: 'after',   // 插入位置：'after'(之后), 'before'(之前), 'replace'(替换)
     interval: 60000,             // 60秒刷新周期
-    style: 1,                    // 样式：1 或 2
+    style: 2,                    // 样式：1 或 2
     hideOriginalCard: true       // 是否隐藏自带流量卡片
   };
 

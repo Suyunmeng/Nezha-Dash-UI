@@ -982,8 +982,8 @@ function initMusicPlayer() {
       
       if (playlist.length > 0) {
         renderPlaylist();
-        const randomIndex = Math.floor(Math.random() * playlist.length);
-        loadTrack(randomIndex);
+        loadTrack(0); // 从第一首开始
+        play(); // 自动播放
       } else {
         console.warn("播放列表为空");
       }

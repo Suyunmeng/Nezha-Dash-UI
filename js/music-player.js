@@ -983,7 +983,10 @@ function initMusicPlayer() {
       if (playlist.length > 0) {
         renderPlaylist();
         loadTrack(0); // 从第一首开始
-        play(); // 自动播放
+        // 尝试自动播放（可能被浏览器阻止）
+        play().catch(() => {
+          // 自动播放失败是正常的，用户点击播放按钮时会再次尝试
+        });
       } else {
         console.warn("播放列表为空");
       }
@@ -1059,9 +1062,14 @@ function initMusicPlayer() {
   // ================================================================
   
   // 6.1 播放
-  function play() {
-    audio.play();
-    setPlaying(true);
+  async function play() {
+    try {
+      await audio.play();
+      setPlaying(true);
+    } catch (error) {
+      console.warn('自动播放被阻止，等待用户交互:', error);
+      setPlaying(false);
+    }
   }
 
   // 6.2 暂停

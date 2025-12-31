@@ -126,7 +126,6 @@
   // ================================================================
 
   function renderTrafficStats(trafficData) {
-    console.log('[renderTrafficStats] 开始渲染流量统计');
     const serverMap = new Map();
 
     // 构建服务器流量数据映射
@@ -156,11 +155,8 @@
       }
     }
 
-    console.log('[renderTrafficStats] 找到', serverMap.size, '个服务器数据');
-
     // 为每个服务器渲染流量信息
     serverMap.forEach((serverData, serverName) => {
-      console.log('[renderTrafficStats] 处理服务器:', serverName);
       const targetElement = Array.from(document.querySelectorAll('section.grid.items-center.gap-2'))
         .find(section => {
           const firstText = section.querySelector('p.break-normal.font-bold.tracking-tight.text-xs')?.textContent.trim();
@@ -168,11 +164,8 @@
         });
 
       if (!targetElement) {
-        console.warn(`[renderTrafficStats] 未找到服务器 "${serverName}" 的卡片元素`);
         return;
       }
-
-      console.log(`[renderTrafficStats] 找到服务器 "${serverName}" 的卡片元素`);
 
       const usedFormatted = formatFileSize(serverData.transfer);
       const totalFormatted = formatFileSize(serverData.max);
@@ -301,19 +294,14 @@
 
     console.log('[updateTrafficStats] 正在请求新数据...');
     fetch('/api/v1/service')
-      .then(res => {
-        console.log('[updateTrafficStats] API 响应状态:', res.status);
-        return res.json();
-      })
+      .then(res => res.json())
       .then(data => {
-        console.log('[updateTrafficStats] API 返回数据:', data);
         if (!data.success) {
           console.warn('[updateTrafficStats] 请求成功但返回数据异常');
           return;
         }
         console.log('[updateTrafficStats] 成功获取新数据');
         const trafficData = data.data.cycle_transfer_stats;
-        console.log('[updateTrafficStats] 流量统计数据:', trafficData);
         trafficCache = {
           timestamp: now,
           data: trafficData
@@ -375,7 +363,6 @@
   const sectionDetector = new MutationObserver(() => {
     const section = document.querySelector(TARGET_SELECTOR);
     if (section && section !== currentSection) {
-      console.log('[sectionDetector] 检测到新的目标 section');
       observeSection(section);
     }
   });
@@ -385,8 +372,6 @@
   // ================================================================
 
   function init() {
-    console.log('[初始化] 开始初始化流量显示模块');
-    
     const root = document.querySelector('main') || document.body;
     sectionDetector.observe(root, { childList: true, subtree: true });
     console.log('[初始化] 启动 sectionDetector, 持续监听 section 切换');
@@ -394,11 +379,7 @@
     // 立即检查是否已存在目标 section
     const section = document.querySelector(TARGET_SELECTOR);
     if (section) {
-      console.log('[初始化] 发现目标 section, 立即开始监听');
       observeSection(section);
-    } else {
-      console.warn('[初始化] 未找到目标 section, 等待 DOM 变化');
-      console.log('[初始化] 正在查找的选择器:', TARGET_SELECTOR);
     }
 
     startPeriodicRefresh();

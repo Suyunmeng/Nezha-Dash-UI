@@ -158,6 +158,15 @@
 
     console.log('[renderTrafficStats] 找到', serverMap.size, '个服务器数据');
 
+    // 调试：列出页面上所有的服务器卡片名称
+    const allServerCards = Array.from(document.querySelectorAll('section.grid.items-center.gap-2'));
+    console.log('[renderTrafficStats] 页面上找到', allServerCards.length, '个服务器卡片');
+    allServerCards.forEach((card, index) => {
+      const nameElement = card.querySelector('p.break-all.font-bold.tracking-tight.text-xs');
+      const cardName = nameElement?.textContent.trim();
+      console.log(`[renderTrafficStats] 卡片 ${index + 1}: "${cardName}"`);
+    });
+
     // 为每个服务器渲染流量信息
     serverMap.forEach((serverData, serverName) => {
       console.log('[renderTrafficStats] 处理服务器:', serverName);

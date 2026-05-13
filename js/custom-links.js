@@ -8,8 +8,14 @@
 // ------------------ 自定义链接配置 ------------------
 window.CustomLinks = JSON.stringify([
   { link: "https://cloudlink.jp.larksuite.com/wiki/space/7568059604148424212", name: "Blog", icon: "icon-book" },
-  { link: "https://t.me/suyunjing_chat_bot", name: "Telegram", icon: "icon-paper-plane" },
-  { link: "https://cloudlink.betteruptime.com", name: "Uptime", icon: "icon-hourglass-start" },
+  { link: "https://t.me/suyunjing_chat_bot",
+    name: "Telegram",
+    icon: "icon-paper-plane"
+  },
+  { link: "https://cloudlink.betteruptime.com",
+    name: "Uptime",
+    icon: "icon-hourglass-start"
+  },
 ]); // 导航栏的自定义链接 (JSON格式), 新增 icon 字段，请确保 icon值为 iconfont.css 中真实存在的 class
 
 // ------------------ 顶部链接图标配置 ------------------
